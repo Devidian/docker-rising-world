@@ -7,7 +7,7 @@ GAME_ID=339010
 mkdir -p ${GAME_DIR}
 chown -R steam:steam ${GAME_DIR}
 echo "-------------------------------START------------------------------"
-su -c "~/steamcmd/steamcmd.sh +login anonymous +force_install_dir ${GAME_DIR} +app_update ${GAME_ID} validate +quit" steam
+su -c "~/steamcmd/steamcmd.sh +force_install_dir ${GAME_DIR} +login anonymous +app_update ${GAME_ID} validate +quit" steam
 
 cd ${GAME_DIR}
 
