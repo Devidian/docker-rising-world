@@ -1,3 +1,5 @@
-defaults
-upload.sh
+/defaults/
 /docker-compose.yml
+/upload.sh
+/data/
+/.env

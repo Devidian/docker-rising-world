@@ -1,0 +1,24 @@
+name: rising-world
+
+services:
+  server:
+    image: devidian/rising-world-docker:2.0.0
+    platform: linux/amd64
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 2m
+    environment:
+      RW_UPDATE_ON_START: "true"
+      RW_VALIDATE: "false"
+    volumes:
+      - type: bind
+        source: ${RW_DATA_DIR:-./data}
+        target: /appdata/rising-world/dedicated-server
+    ports:
+      - "4254-4259:4254-4259/udp"
+      - "4254-4259:4254-4259/tcp"
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"

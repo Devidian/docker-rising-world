@@ -1,12 +1,31 @@
-FROM cm2network/steamcmd:root
+FROM cm2network/steamcmd:steam-trixie
 
-LABEL maintainer=docker-rw@devidian.de
+ARG VERSION=dev
+ARG VCS_REF=unknown
 
-RUN apt update && apt upgrade -y
+LABEL org.opencontainers.image.title="Rising World Dedicated Server" \
+      org.opencontainers.image.description="Docker image for the Rising World dedicated server" \
+      org.opencontainers.image.source="https://github.com/Devidian/docker-rising-world" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.authors="docker-rw@devidian.de"
 
-COPY entrypoint.sh /root/
-RUN chmod +x /root/entrypoint.sh
+USER root
 
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 CMD curl -f http://localhost:4254/info || exit 1
+RUN install -d -o steam -g steam /appdata/rising-world/dedicated-server
 
-ENTRYPOINT ["/root/entrypoint.sh"]
+COPY --chown=steam:steam --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
+
+USER steam
+WORKDIR /appdata/rising-world/dedicated-server
+
+ENV RW_UPDATE_ON_START=true \
+    RW_VALIDATE=false
+
+EXPOSE 4254-4259/tcp 4254-4259/udp
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10m --retries=3 \
+    CMD ["curl", "--fail", "--silent", "--show-error", "--max-time", "5", "http://127.0.0.1:4254/info"]
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

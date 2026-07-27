@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends shellcheck
+
+      - name: Validate shell scripts
+        run: |
+          bash -n entrypoint.sh
+          shellcheck entrypoint.sh
+
+      - name: Validate Compose examples
+        run: |
+          docker compose -f compose.named-volume.yaml config --quiet
+          docker compose -f compose.bind-mount.yaml config --quiet
+
+      - name: Run Docker build checks
+        run: docker build --check .
+
+      - name: Build image
+        run: |
+          docker build \
+            --build-arg VERSION=ci \
+            --build-arg VCS_REF="${GITHUB_SHA}" \
+            --tag rising-world-docker:ci \
+            .
+
+      - name: Verify image configuration
+        run: |
+          test "$(docker image inspect rising-world-docker:ci --format '{{.Config.User}}')" = "steam"
+          docker image inspect rising-world-docker:ci --format '{{json .Config.Healthcheck}}' |
+            grep -F '"StartPeriod":600000000000'
+
+      - name: Verify non-root volume access
+        run: |
+          docker run --rm \
+            --entrypoint /bin/sh \
+            rising-world-docker:ci \
+            -ec 'test "$(id -u)" = 1000 && test -w /appdata/rising-world/dedicated-server'

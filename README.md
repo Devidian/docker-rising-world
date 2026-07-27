@@ -1,22 +1,93 @@
-# Rising World Dedicated Docker Server
+# Rising World Dedicated Server
 
-This is a base image for `Rising World` dedicated Server.
+Docker image for the Linux `Rising World` dedicated server. The image installs
+and updates Steam application `339010` at container startup and runs the game
+server as the unprivileged `steam` user.
 
-## Usage
+The image supports `linux/amd64`.
 
-### docker-compose example
+## Quick start
 
-```yml
-services:
-  rw-server:
-    image: devidian/rising-world-docker:latest
-    container_name: rw-docker
-    restart: unless-stopped
-    volumes:
-      # left side: your docker-host machine
-      # right side: the paths in the image (!!do not change!!)
-      - /appdata/rising-world/dedicated-server:/appdata/rising-world/dedicated-server
-    ports:
-      - "4254-4259:4254-4259/udp"
-      - "4254-4259:4254-4259/tcp"
+The named-volume example works without host-side permission preparation:
+
+```bash
+docker compose -f compose.named-volume.yaml up -d
+docker compose -f compose.named-volume.yaml logs -f
 ```
+
+The first startup downloads and validates the required SteamCMD metadata and can
+take several minutes. Server files, configuration, worlds, and plugins persist
+in the `rising-world-data` volume.
+
+## Compose examples
+
+- `compose.named-volume.yaml` uses a Docker-managed volume and is recommended
+  for new installations.
+- `compose.bind-mount.yaml` stores the server data in
+  `${RW_DATA_DIR:-./data}` on the host.
+
+Both examples publish TCP and UDP ports `4254` through `4259`, enable a two
+minute graceful-stop window, and limit Docker log retention.
+
+### Bind-mount permissions
+
+The container runs as uid `1000` and gid `1000`. Prepare an existing host
+directory before switching from an older root-based image:
+
+```bash
+sudo chown -R 1000:1000 /absolute/path/to/rising-world-data
+RW_DATA_DIR=/absolute/path/to/rising-world-data \
+  docker compose -f compose.bind-mount.yaml up -d
+```
+
+Replace the example path with the exact dedicated-server directory. The
+container exits with a clear error when the mounted directory is not writable.
+
+## Configuration
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `RW_UPDATE_ON_START` | `true` | Run SteamCMD `app_update` before starting the server. A missing installation is always installed. |
+| `RW_VALIDATE` | `false` | Add `validate` to `app_update`. This makes startup slower but verifies all installed files. |
+
+Only the literal values `true` and `false` are accepted.
+
+Rising World configuration is stored inside the persistent server directory:
+
+```text
+/appdata/rising-world/dedicated-server
+```
+
+## Health and shutdown
+
+The image checks `http://127.0.0.1:4254/info` every 30 seconds. A ten minute
+startup grace period accommodates the first installation. Docker health status
+is observational: a container marked `unhealthy` is not restarted solely by the
+Compose restart policy.
+
+The server replaces the entrypoint process and receives Docker stop signals
+directly. The Compose examples allow up to two minutes for world data to be
+saved before Docker forces termination.
+
+## Backups
+
+Stop the server cleanly before taking a filesystem-level backup. Back up the
+complete persistent server directory or named volume and periodically test a
+restore into a separate volume. In-game backups stored in the same volume do
+not replace an external backup.
+
+## Build
+
+```bash
+docker build \
+  --build-arg VERSION=dev \
+  --build-arg VCS_REF="$(git rev-parse HEAD)" \
+  -t rising-world-docker:dev .
+```
+
+Published releases use immutable version tags such as `2.0.0`, the compatible
+major tag `2`, and `latest`.
+
+## License
+
+This project is available under the MIT License.
