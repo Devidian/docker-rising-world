@@ -43,6 +43,23 @@ RW_DATA_DIR=/absolute/path/to/rising-world-data \
 Replace the example path with the exact dedicated-server directory. The
 container exits with a clear error when the mounted directory is not writable.
 
+## Install OZ Tools
+
+Both Compose examples create the server container as
+`rising-world-server-1`. The following one-liner downloads the latest OZ Tools
+release, installs it into the persistent `Plugins` directory with the correct
+ownership, and restarts the server:
+
+```bash
+docker run --rm --volumes-from rising-world-server-1 alpine:3.22 sh -ec 'apk add --no-cache curl unzip >/dev/null; plugins=/appdata/rising-world/dedicated-server/Plugins; url="$(curl -fsSL https://api.github.com/repos/Devidian/rw-plugin-oz-tools/releases/latest | sed -n "s/.*\"browser_download_url\": \"\\([^\"]*\\.zip\\)\".*/\\1/p" | head -n 1)"; test -n "$url"; mkdir -p "$plugins"; curl -fsSL "$url" -o /tmp/oztools.zip; unzip -oq /tmp/oztools.zip -d "$plugins"; test -f "$plugins/OZTools/OZTools.jar"; chown -R 1000:1000 "$plugins/OZTools"' && docker restart rising-world-server-1
+```
+
+The helper container inherits the server's mount, so the command works with
+both the named-volume and bind-mount variants. If the Compose project name was
+changed, replace `rising-world-server-1` with the actual server container name.
+Running the command again updates the existing OZ Tools installation while
+retaining its local configuration files.
+
 ## Configuration
 
 | Variable | Default | Description |
