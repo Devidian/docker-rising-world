@@ -45,6 +45,8 @@ jobs:
       - name: Verify image configuration
         run: |
           test "$(docker image inspect rising-world-docker:ci --format '{{.Config.User}}')" = "steam"
+          docker image inspect rising-world-docker:ci --format '{{json .Config.Env}}' |
+            grep -F '"RW_INSTALL_OZ_TOOLS=false"'
           docker image inspect rising-world-docker:ci --format '{{json .Config.Healthcheck}}' |
             grep -F '"StartPeriod":600000000000'
 
@@ -54,3 +56,25 @@ jobs:
             --entrypoint /bin/sh \
             rising-world-docker:ci \
             -ec 'test "$(id -u)" = 1000 && test -w /appdata/rising-world/dedicated-server'
+
+      - name: Verify OZ Tools failures are non-fatal
+        run: |
+          volume="rising-world-oz-tools-${GITHUB_RUN_ID}"
+          trap 'docker volume rm --force "${volume}" >/dev/null' EXIT
+          docker volume create "${volume}" >/dev/null
+          docker run --rm \
+            --volume "${volume}:/appdata/rising-world/dedicated-server" \
+            --entrypoint /bin/sh \
+            rising-world-docker:ci \
+            -ec 'ln -s /bin/true /appdata/rising-world/dedicated-server/RisingWorldServer.x64'
+          output="$(
+            docker run --rm \
+              --network none \
+              --volume "${volume}:/appdata/rising-world/dedicated-server" \
+              --env RW_UPDATE_ON_START=false \
+              --env RW_INSTALL_OZ_TOOLS=true \
+              rising-world-docker:ci 2>&1
+          )"
+          printf '%s\n' "${output}"
+          grep -F 'WARNING: OZ Tools installation failed; starting the server anyway.' <<<"${output}"
+          grep -F 'Starting Rising World dedicated server...' <<<"${output}"

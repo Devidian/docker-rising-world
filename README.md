@@ -45,6 +45,22 @@ container exits with a clear error when the mounted directory is not writable.
 
 ## Install OZ Tools
 
+### Automatic installation
+
+Set `RW_INSTALL_OZ_TOOLS` to `true` in either Compose example to download and
+install the latest OZ Tools release before every server start:
+
+```yaml
+environment:
+  RW_INSTALL_OZ_TOOLS: "true"
+```
+
+API, download, or extraction failures are logged as warnings and never prevent
+the Rising World server from starting. Existing local OZ Tools configuration
+files are carried over when the release files are replaced.
+
+### One-off installation
+
 Both Compose examples create the server container as
 `rising-world-server-1`. The following one-liner downloads the latest OZ Tools
 release, installs it into the persistent `Plugins` directory with the correct
@@ -66,6 +82,7 @@ retaining its local configuration files.
 | --- | --- | --- |
 | `RW_UPDATE_ON_START` | `true` | Run SteamCMD `app_update` before starting the server. A missing installation is always installed. |
 | `RW_VALIDATE` | `false` | Add `validate` to `app_update`. This makes startup slower but verifies all installed files. |
+| `RW_INSTALL_OZ_TOOLS` | `false` | Download and install the latest OZ Tools release before every server start. Installation failures are non-fatal. |
 
 Only the literal values `true` and `false` are accepted.
 
@@ -102,7 +119,7 @@ docker build \
   -t rising-world-docker:dev .
 ```
 
-Published releases use immutable version tags such as `2.0.0`, the compatible
+Published releases use immutable version tags such as `2.1.0`, the compatible
 major tag `2`, and `latest`.
 
 ## License

@@ -13,7 +13,10 @@ LABEL org.opencontainers.image.title="Rising World Dedicated Server" \
 
 USER root
 
-RUN install -d -o steam -g steam /appdata/rising-world/dedicated-server
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends unzip \
+    && rm -rf /var/lib/apt/lists/* \
+    && install -d -o steam -g steam /appdata/rising-world/dedicated-server
 
 COPY --chown=steam:steam --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
 
@@ -21,7 +24,8 @@ USER steam
 WORKDIR /appdata/rising-world/dedicated-server
 
 ENV RW_UPDATE_ON_START=true \
-    RW_VALIDATE=false
+    RW_VALIDATE=false \
+    RW_INSTALL_OZ_TOOLS=false
 
 EXPOSE 4254-4259/tcp 4254-4259/udp
 
