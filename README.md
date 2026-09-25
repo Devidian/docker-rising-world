@@ -29,6 +29,23 @@ in the `rising-world-data` volume.
 Both examples publish TCP and UDP ports `4254` through `4259`, enable a two
 minute graceful-stop window, and limit Docker log retention.
 
+### Steam beta branch
+
+Set `RW_BETA` to the Steam branch name to install and update that version:
+
+```bash
+RW_BETA=branch-name docker compose -f compose.named-volume.yaml up -d
+```
+
+Replace `branch-name` with the exact Steam branch name. Use the same setting
+with `compose.bind-mount.yaml` if needed. Set `RW_IMAGE` to a different image
+tag when testing a local build. The branch is
+selected when SteamCMD runs at startup. Set `RW_BETA=public` to switch an
+existing installation back to the public branch. Keep `RW_UPDATE_ON_START=true`
+when changing branches; an absent server installation is downloaded even when
+updates are disabled. Back up persistent server data before switching between
+branches with different world or configuration formats.
+
 ### Bind-mount permissions
 
 The container runs as uid `1000` and gid `1000`. Prepare an existing host
@@ -82,9 +99,10 @@ retaining its local configuration files.
 | --- | --- | --- |
 | `RW_UPDATE_ON_START` | `true` | Run SteamCMD `app_update` before starting the server. A missing installation is always installed. |
 | `RW_VALIDATE` | `false` | Add `validate` to `app_update`. This makes startup slower but verifies all installed files. |
+| `RW_BETA` | empty | Select a Steam beta branch with `-beta <branch>`. Empty uses SteamCMD's default branch behavior; use `public` explicitly to return from a beta. |
 | `RW_INSTALL_OZ_TOOLS` | `false` | Download and install the latest OZ Tools release before every server start. Installation failures are non-fatal. |
 
-Only the literal values `true` and `false` are accepted.
+The boolean variables accept only the literal values `true` and `false`.
 
 Rising World configuration is stored inside the persistent server directory:
 

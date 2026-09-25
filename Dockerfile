@@ -25,6 +25,7 @@ WORKDIR /appdata/rising-world/dedicated-server
 
 ENV RW_UPDATE_ON_START=true \
     RW_VALIDATE=false \
+    RW_BETA="" \
     RW_INSTALL_OZ_TOOLS=false
 
 EXPOSE 4254-4259/tcp 4254-4259/udp

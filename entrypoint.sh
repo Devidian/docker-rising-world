@@ -11,9 +11,11 @@ readonly OZ_TOOLS_RELEASE_API="https://api.github.com/repos/Devidian/rw-plugin-o
 
 RW_UPDATE_ON_START="${RW_UPDATE_ON_START:-true}"
 RW_VALIDATE="${RW_VALIDATE:-false}"
+RW_BETA="${RW_BETA:-}"
 RW_INSTALL_OZ_TOOLS="${RW_INSTALL_OZ_TOOLS:-false}"
 readonly RW_UPDATE_ON_START
 readonly RW_VALIDATE
+readonly RW_BETA
 readonly RW_INSTALL_OZ_TOOLS
 
 validate_boolean() {
@@ -163,6 +165,10 @@ if [[ "${RW_UPDATE_ON_START}" == "true" || ! -x "${SERVER_BINARY}" ]]; then
         +app_info_update 1
         +app_update "${GAME_ID}"
     )
+
+    if [[ -n "${RW_BETA}" ]]; then
+        steamcmd_args+=(-beta "${RW_BETA}")
+    fi
 
     if [[ "${RW_VALIDATE}" == "true" ]]; then
         steamcmd_args+=(validate)

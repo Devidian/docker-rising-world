@@ -2,7 +2,7 @@ name: rising-world
 
 services:
   server:
-    image: devidian/rising-world-docker:2.1.0
+    image: ${RW_IMAGE:-devidian/rising-world-docker:2.2.0}
     platform: linux/amd64
     restart: unless-stopped
     init: true
@@ -10,6 +10,7 @@ services:
     environment:
       RW_UPDATE_ON_START: "true"
       RW_VALIDATE: "false"
+      RW_BETA: ${RW_BETA:-}
       RW_INSTALL_OZ_TOOLS: "false"
     volumes:
       - type: bind
