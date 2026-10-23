@@ -2,7 +2,7 @@ name: rising-world
 
 services:
   server:
-    image: ${RW_IMAGE:-devidian/rising-world-docker:2.2.0}
+    image: ${RW_IMAGE:-devidian/rising-world-docker:2.3.0}
     platform: linux/amd64
     restart: unless-stopped
     init: true
@@ -12,6 +12,8 @@ services:
       RW_VALIDATE: "false"
       RW_BETA: ${RW_BETA:-}
       RW_INSTALL_OZ_TOOLS: "false"
+      RW_BACKUP_ON_START: "true"
+      RW_BACKUP_KEEP: "${RW_BACKUP_KEEP:-7}"
     volumes:
       - type: bind
         source: ${RW_DATA_DIR:-./data}

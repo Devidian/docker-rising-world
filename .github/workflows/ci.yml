@@ -19,12 +19,15 @@ jobs:
       - name: Install shellcheck
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends shellcheck
+          sudo apt-get install -y --no-install-recommends shellcheck borgbackup
 
       - name: Validate shell scripts
         run: |
-          bash -n entrypoint.sh
-          shellcheck entrypoint.sh
+          bash -n entrypoint.sh backup.sh tests/backup.sh
+          shellcheck entrypoint.sh backup.sh tests/backup.sh
+
+      - name: Test startup backup and retention
+        run: bash tests/backup.sh
 
       - name: Validate Compose examples
         run: |

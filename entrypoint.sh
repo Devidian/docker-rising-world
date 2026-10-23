@@ -8,15 +8,20 @@ readonly STEAMCMD="/home/steam/steamcmd/steamcmd.sh"
 readonly PLUGINS_DIR="${GAME_DIR}/Plugins"
 readonly OZ_TOOLS_DIR="${PLUGINS_DIR}/OZTools"
 readonly OZ_TOOLS_RELEASE_API="https://api.github.com/repos/Devidian/rw-plugin-oz-tools/releases/latest"
+readonly BACKUP_SCRIPT="/usr/local/bin/backup.sh"
 
 RW_UPDATE_ON_START="${RW_UPDATE_ON_START:-true}"
 RW_VALIDATE="${RW_VALIDATE:-false}"
 RW_BETA="${RW_BETA:-}"
 RW_INSTALL_OZ_TOOLS="${RW_INSTALL_OZ_TOOLS:-false}"
+RW_BACKUP_ON_START="${RW_BACKUP_ON_START:-true}"
+RW_BACKUP_KEEP="${RW_BACKUP_KEEP:-7}"
 readonly RW_UPDATE_ON_START
 readonly RW_VALIDATE
 readonly RW_BETA
 readonly RW_INSTALL_OZ_TOOLS
+readonly RW_BACKUP_ON_START
+readonly RW_BACKUP_KEEP
 
 validate_boolean() {
     local name="$1"
@@ -143,6 +148,13 @@ install_oz_tools() {
 validate_boolean "RW_UPDATE_ON_START" "${RW_UPDATE_ON_START}"
 validate_boolean "RW_VALIDATE" "${RW_VALIDATE}"
 validate_boolean "RW_INSTALL_OZ_TOOLS" "${RW_INSTALL_OZ_TOOLS}"
+validate_boolean "RW_BACKUP_ON_START" "${RW_BACKUP_ON_START}"
+
+if [[ ! "${RW_BACKUP_KEEP}" =~ ^[1-9][0-9]{0,5}$ ]]; then
+    printf 'ERROR: RW_BACKUP_KEEP must be an integer from 1 to 999999 (received: %s).\n' \
+        "${RW_BACKUP_KEEP}" >&2
+    exit 64
+fi
 
 mkdir -p "${GAME_DIR}"
 
@@ -156,6 +168,10 @@ fi
 if [[ ! -x "${STEAMCMD}" ]]; then
     printf 'ERROR: SteamCMD is not executable at %s.\n' "${STEAMCMD}" >&2
     exit 69
+fi
+
+if [[ "${RW_BACKUP_ON_START}" == "true" ]]; then
+    "${BACKUP_SCRIPT}" "${GAME_DIR}" "${RW_BACKUP_KEEP}"
 fi
 
 if [[ "${RW_UPDATE_ON_START}" == "true" || ! -x "${SERVER_BINARY}" ]]; then

@@ -101,6 +101,8 @@ retaining its local configuration files.
 | `RW_VALIDATE` | `false` | Add `validate` to `app_update`. This makes startup slower but verifies all installed files. |
 | `RW_BETA` | empty | Select a Steam beta branch with `-beta <branch>`. Empty uses SteamCMD's default branch behavior; use `public` explicitly to return from a beta. |
 | `RW_INSTALL_OZ_TOOLS` | `false` | Download and install the latest OZ Tools release before every server start. Installation failures are non-fatal. |
+| `RW_BACKUP_ON_START` | `true` | Snapshot existing `Worlds` and `Plugins` before SteamCMD, plugin updates, and the game server start. |
+| `RW_BACKUP_KEEP` | `7` | Number of startup archives to retain (1–999999). Oldest archives are pruned only after a new archive completes. |
 
 The boolean variables accept only the literal values `true` and `false`.
 
@@ -123,10 +125,29 @@ saved before Docker forces termination.
 
 ## Backups
 
-Stop the server cleanly before taking a filesystem-level backup. Back up the
-complete persistent server directory or named volume and periodically test a
-restore into a separate volume. In-game backups stored in the same volume do
-not replace an external backup.
+By default, each container start archives the existing `Worlds` and `Plugins`
+directories **before** SteamCMD or the game server runs. The first start skips
+the backup if neither directory exists. Borg stores the archives in
+`Backups/docker-rising-world/repository/` inside the persistent server directory.
+Each archive is independently restorable, while Borg deduplicates unchanged
+data and changed chunks within large SQLite databases. The repository uses
+authenticated, unencrypted storage with an empty passphrase. A failed backup
+prevents the server from starting. Set `RW_BACKUP_ON_START=false` to disable
+this behavior; set `RW_BACKUP_KEEP` to change the retention count. These are
+startup backups, so a continuously running container does not create new
+archives on a timer.
+
+To restore, stop the server and preserve the current data outside the server
+directory. List archives with `borg list Backups/docker-rising-world/repository`
+from inside the server directory. Move the current `Worlds` and `Plugins`
+directories aside, then run
+`borg extract Backups/docker-rising-world/repository::ARCHIVE` from that
+directory. Set `BORG_PASSPHRASE=''`, `BORG_CACHE_DIR` and `BORG_SECURITY_DIR`
+to the corresponding paths under `Backups/docker-rising-world/` when running
+Borg outside the image. With a named volume, use a temporary helper container
+while the game server is stopped. Archives remain in the same persistent
+volume and do not protect against volume or host loss. Copy the repository to
+external storage and periodically test a restore.
 
 ## Build
 
