@@ -103,6 +103,8 @@ retaining its local configuration files.
 | `RW_INSTALL_OZ_TOOLS` | `false` | Download and install the latest OZ Tools release before every server start. Installation failures are non-fatal. |
 | `RW_BACKUP_ON_START` | `true` | Snapshot existing `Worlds` and `Plugins` before SteamCMD, plugin updates, and the game server start. |
 | `RW_BACKUP_KEEP` | `7` | Number of startup archives to retain (1–999999). Oldest archives are pruned only after a new archive completes. |
+| `RW_COMPACT_PLUGIN_DBS_ON_START` | `false` | Compact SQLite `.db` files under `Plugins` whose main file exceeds the configured size before starting the server. |
+| `RW_COMPACT_PLUGIN_DBS_MIN_MIB` | `512` | Minimum main database size in MiB (1–999999). Files must be larger than this value. |
 
 The boolean variables accept only the literal values `true` and `false`.
 
@@ -148,6 +150,28 @@ Borg outside the image. With a named volume, use a temporary helper container
 while the game server is stopped. Archives remain in the same persistent
 volume and do not protect against volume or host loss. Copy the repository to
 external storage and periodically test a restore.
+
+## Plugin database compaction
+
+Set `RW_COMPACT_PLUGIN_DBS_ON_START=true` to reclaim unused pages in large
+plugin SQLite databases during startup. The routine checks regular `.db` files
+under `Plugins`, including nested plugin directories; it does not touch game
+databases under `Worlds`. `RW_COMPACT_PLUGIN_DBS_MIN_MIB` defaults to 512 MiB.
+The server must be stopped while the routine runs, as it is during a normal
+container start. It can extend startup time and needs enough free space for a
+new copy of each selected database as well as the Borg backup.
+
+A Borg startup archive is created before any compaction, even when
+`RW_BACKUP_ON_START=false`. With the normal startup backup enabled, the routine
+uses that same archive and does not create a second one. If a forced backup
+fails, compaction is skipped and the server starts with a warning. A failed
+normal startup backup still prevents startup. Each database is copied and
+checked before replacement; its original database and SQLite journal files remain
+available for local rollback until the replacement is verified. If compaction
+fails, the original is restored and startup continues with a warning. An
+interrupted replacement is recovered on the next startup, even if compaction
+has since been disabled. A failed rollback stops startup to avoid opening an
+incomplete database.
 
 ## Build
 

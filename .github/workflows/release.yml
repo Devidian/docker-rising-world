@@ -19,7 +19,7 @@ jobs:
         shell: bash
         run: |
           version="${GITHUB_REF_NAME#v}"
-          if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-rc\.[1-9][0-9]*)?$ ]]; then
             printf 'Invalid release tag: %s\n' "${GITHUB_REF_NAME}" >&2
             exit 64
           fi
@@ -43,10 +43,12 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: devidian/rising-world-docker
+          flavor: |
+            latest=false
           tags: |
             type=semver,pattern={{version}}
-            type=semver,pattern={{major}}
-            type=raw,value=latest
+            type=semver,pattern={{major}},enable=${{ !contains(github.ref_name, '-rc.') }}
+            type=raw,value=latest,enable=${{ !contains(github.ref_name, '-rc.') }}
 
       - name: Build and publish image
         uses: docker/build-push-action@v7
@@ -66,8 +68,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          release_flags=()
+          if [[ "${GITHUB_REF_NAME}" == *-rc.* ]]; then
+            release_flags+=(--prerelease)
+          fi
           gh release view "${GITHUB_REF_NAME}" ||
             gh release create "${GITHUB_REF_NAME}" \
               --title "${GITHUB_REF_NAME}" \
               --generate-notes \
-              --verify-tag
+              --verify-tag \
+              "${release_flags[@]}"

@@ -19,15 +19,18 @@ jobs:
       - name: Install shellcheck
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends shellcheck borgbackup
+          sudo apt-get install -y --no-install-recommends shellcheck borgbackup sqlite3
 
       - name: Validate shell scripts
         run: |
-          bash -n entrypoint.sh backup.sh tests/backup.sh
-          shellcheck entrypoint.sh backup.sh tests/backup.sh
+          bash -n entrypoint.sh backup.sh compact-plugin-dbs.sh tests/backup.sh tests/compact-plugin-dbs.sh
+          shellcheck entrypoint.sh backup.sh compact-plugin-dbs.sh tests/backup.sh tests/compact-plugin-dbs.sh
 
       - name: Test startup backup and retention
         run: bash tests/backup.sh
+
+      - name: Test plugin database compaction and rollback
+        run: bash tests/compact-plugin-dbs.sh
 
       - name: Validate Compose examples
         run: |
@@ -50,6 +53,8 @@ jobs:
           test "$(docker image inspect rising-world-docker:ci --format '{{.Config.User}}')" = "steam"
           docker image inspect rising-world-docker:ci --format '{{json .Config.Env}}' |
             grep -F '"RW_INSTALL_OZ_TOOLS=false"'
+          docker image inspect rising-world-docker:ci --format '{{json .Config.Env}}' |
+            grep -F '"RW_COMPACT_PLUGIN_DBS_ON_START=false"'
           docker image inspect rising-world-docker:ci --format '{{json .Config.Healthcheck}}' |
             grep -F '"StartPeriod":600000000000'
 

@@ -14,6 +14,8 @@ services:
       RW_INSTALL_OZ_TOOLS: "false"
       RW_BACKUP_ON_START: "true"
       RW_BACKUP_KEEP: "${RW_BACKUP_KEEP:-7}"
+      RW_COMPACT_PLUGIN_DBS_ON_START: "${RW_COMPACT_PLUGIN_DBS_ON_START:-false}"
+      RW_COMPACT_PLUGIN_DBS_MIN_MIB: "${RW_COMPACT_PLUGIN_DBS_MIN_MIB:-512}"
     volumes:
       - rising-world-data:/appdata/rising-world/dedicated-server
     ports:
