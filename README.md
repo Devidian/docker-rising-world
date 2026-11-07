@@ -116,10 +116,17 @@ Rising World configuration is stored inside the persistent server directory:
 
 ## Health and shutdown
 
-The image checks `http://127.0.0.1:4254/info` every 30 seconds. A ten minute
-startup grace period accommodates the first installation. Docker health status
-is observational: a container marked `unhealthy` is not restarted solely by the
-Compose restart policy.
+The image reads `Server_Port` from the persistent `server.properties` and checks
+`http://127.0.0.1:<Server_Port - 1>/info` every 30 seconds. Before the file
+exists, it uses the default game port `4255` and checks `4254`. When changing
+`Server_Port`, publish the matching game and info ports in Compose too; the
+image healthcheck only verifies the local endpoint. For example, with
+`Server_Port=5255`, publish `5254-5259:5254-5259` for both TCP and UDP in the
+Compose `ports` section. The `EXPOSE` declaration lists the default ports but
+does not restrict other published ports. A ten minute startup grace period
+accommodates the first installation. Docker health status is observational:
+a container marked `unhealthy` is not restarted solely by the Compose restart
+policy.
 
 The server replaces the entrypoint process and receives Docker stop signals
 directly. The Compose examples allow up to two minutes for world data to be

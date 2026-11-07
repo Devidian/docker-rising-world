@@ -23,8 +23,11 @@ jobs:
 
       - name: Validate shell scripts
         run: |
-          bash -n entrypoint.sh backup.sh compact-plugin-dbs.sh tests/backup.sh tests/compact-plugin-dbs.sh
-          shellcheck entrypoint.sh backup.sh compact-plugin-dbs.sh tests/backup.sh tests/compact-plugin-dbs.sh
+          bash -n entrypoint.sh backup.sh compact-plugin-dbs.sh healthcheck.sh tests/backup.sh tests/compact-plugin-dbs.sh tests/healthcheck.sh
+          shellcheck entrypoint.sh backup.sh compact-plugin-dbs.sh healthcheck.sh tests/backup.sh tests/compact-plugin-dbs.sh tests/healthcheck.sh
+
+      - name: Test configurable healthcheck port
+        run: bash tests/healthcheck.sh
 
       - name: Test startup backup and retention
         run: bash tests/backup.sh

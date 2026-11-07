@@ -21,6 +21,7 @@ RUN apt-get update \
 COPY --chown=steam:steam --chmod=0755 entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY --chown=steam:steam --chmod=0755 backup.sh /usr/local/bin/backup.sh
 COPY --chown=steam:steam --chmod=0755 compact-plugin-dbs.sh /usr/local/bin/compact-plugin-dbs.sh
+COPY --chown=steam:steam --chmod=0755 healthcheck.sh /usr/local/bin/healthcheck.sh
 
 USER steam
 WORKDIR /appdata/rising-world/dedicated-server
@@ -37,6 +38,6 @@ ENV RW_UPDATE_ON_START=true \
 EXPOSE 4254-4259/tcp 4254-4259/udp
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10m --retries=3 \
-    CMD ["curl", "--fail", "--silent", "--show-error", "--max-time", "5", "http://127.0.0.1:4254/info"]
+    CMD ["/usr/local/bin/healthcheck.sh"]
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
