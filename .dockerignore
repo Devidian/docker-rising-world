@@ -3,3 +3,4 @@
 !entrypoint.sh
 !backup.sh
 !compact-plugin-dbs.sh
+!healthcheck.sh
