@@ -22,8 +22,11 @@ mapfile -t archives < <(borg list --short "${repository}" | LC_ALL=C sort)
 [[ "$(borg extract --stdout "${repository}::${archives[0]}" 'Worlds/New World/Player.db')" == world-v1 ]]
 [[ "$(borg extract --stdout "${repository}::${archives[0]}" 'Plugins/OZTools/settings.json')" == plugin-v1 ]]
 
+# Borg versions with second-resolution timestamps need distinct archive times.
+sleep 1
 printf 'world-v2\n' > "${game_dir}/Worlds/New World/Player.db"
 bash "${repo_dir}/backup.sh" "${game_dir}" 2
+sleep 1
 printf 'world-v3\n' > "${game_dir}/Worlds/New World/Player.db"
 bash "${repo_dir}/backup.sh" "${game_dir}" 2
 
