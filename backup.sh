@@ -2,7 +2,8 @@
 set -Eeuo pipefail
 
 readonly game_dir="${1:?game directory is required}"
-readonly keep="${2:?retention count is required}"
+readonly keep="${2:-}"
+readonly keep_days="${RW_BACKUP_KEEP_DAYS:-7}"
 readonly backup_dir="${game_dir}/Backups/docker-rising-world"
 readonly repository="${backup_dir}/repository"
 
@@ -35,5 +36,8 @@ archive="rw-${timestamp}-${RANDOM}"
 )
 printf 'Backup created: %s::%s\n' "${repository}" "${archive}"
 
-borg prune --glob-archives 'rw-*' --keep-last "${keep}" "${repository}"
+borg prune --glob-archives 'rw-*' --keep-within "${keep_days}d" "${repository}"
+if [[ -n "${keep}" ]]; then
+    borg prune --glob-archives 'rw-*' --keep-last "${keep}" "${repository}"
+fi
 borg compact --threshold 1 "${repository}"

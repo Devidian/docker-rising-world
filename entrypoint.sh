@@ -16,7 +16,8 @@ RW_VALIDATE="${RW_VALIDATE:-false}"
 RW_BETA="${RW_BETA:-}"
 RW_INSTALL_OZ_TOOLS="${RW_INSTALL_OZ_TOOLS:-false}"
 RW_BACKUP_ON_START="${RW_BACKUP_ON_START:-true}"
-RW_BACKUP_KEEP="${RW_BACKUP_KEEP:-7}"
+RW_BACKUP_KEEP="${RW_BACKUP_KEEP:-}"
+export RW_BACKUP_KEEP_DAYS="${RW_BACKUP_KEEP_DAYS:-7}"
 RW_COMPACT_PLUGIN_DBS_ON_START="${RW_COMPACT_PLUGIN_DBS_ON_START:-false}"
 RW_COMPACT_PLUGIN_DBS_MIN_MIB="${RW_COMPACT_PLUGIN_DBS_MIN_MIB:-512}"
 readonly RW_UPDATE_ON_START
@@ -25,6 +26,7 @@ readonly RW_BETA
 readonly RW_INSTALL_OZ_TOOLS
 readonly RW_BACKUP_ON_START
 readonly RW_BACKUP_KEEP
+readonly RW_BACKUP_KEEP_DAYS
 readonly RW_COMPACT_PLUGIN_DBS_ON_START
 readonly RW_COMPACT_PLUGIN_DBS_MIN_MIB
 
@@ -156,9 +158,15 @@ validate_boolean "RW_INSTALL_OZ_TOOLS" "${RW_INSTALL_OZ_TOOLS}"
 validate_boolean "RW_BACKUP_ON_START" "${RW_BACKUP_ON_START}"
 validate_boolean "RW_COMPACT_PLUGIN_DBS_ON_START" "${RW_COMPACT_PLUGIN_DBS_ON_START}"
 
-if [[ ! "${RW_BACKUP_KEEP}" =~ ^[1-9][0-9]{0,5}$ ]]; then
-    printf 'ERROR: RW_BACKUP_KEEP must be an integer from 1 to 999999 (received: %s).\n' \
+if [[ -n "${RW_BACKUP_KEEP}" && ! "${RW_BACKUP_KEEP}" =~ ^[1-9][0-9]{0,5}$ ]]; then
+    printf 'ERROR: RW_BACKUP_KEEP must be empty or an integer from 1 to 999999 (received: %s).\n' \
         "${RW_BACKUP_KEEP}" >&2
+    exit 64
+fi
+
+if [[ ! "${RW_BACKUP_KEEP_DAYS}" =~ ^[1-9][0-9]{0,5}$ ]]; then
+    printf 'ERROR: RW_BACKUP_KEEP_DAYS must be an integer from 1 to 999999 (received: %s).\n' \
+        "${RW_BACKUP_KEEP_DAYS}" >&2
     exit 64
 fi
 

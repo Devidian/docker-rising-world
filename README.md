@@ -102,7 +102,8 @@ retaining its local configuration files.
 | `RW_BETA` | empty | Select a Steam beta branch with `-beta <branch>`. Empty uses SteamCMD's default branch behavior; use `public` explicitly to return from a beta. |
 | `RW_INSTALL_OZ_TOOLS` | `false` | Download and install the latest OZ Tools release before every server start. Installation failures are non-fatal. |
 | `RW_BACKUP_ON_START` | `true` | Snapshot existing `Worlds` and `Plugins` before SteamCMD, plugin updates, and the game server start. |
-| `RW_BACKUP_KEEP` | `7` | Number of startup archives to retain (1–999999). Oldest archives are pruned only after a new archive completes. |
+| `RW_BACKUP_KEEP_DAYS` | `7` | Startup backup retention window in days (1–999999). Pruning runs after a successful new archive. |
+| `RW_BACKUP_KEEP` | empty | Optional additional limit on the number of startup archives (1–999999). |
 | `RW_COMPACT_PLUGIN_DBS_ON_START` | `false` | Compact SQLite `.db` files under `Plugins` whose main file exceeds the configured size before starting the server. |
 | `RW_COMPACT_PLUGIN_DBS_MIN_MIB` | `512` | Minimum main database size in MiB (1–999999). Files must be larger than this value. |
 
@@ -142,7 +143,9 @@ Each archive is independently restorable, while Borg deduplicates unchanged
 data and changed chunks within large SQLite databases. The repository uses
 authenticated, unencrypted storage with an empty passphrase. A failed backup
 prevents the server from starting. Set `RW_BACKUP_ON_START=false` to disable
-this behavior; set `RW_BACKUP_KEEP` to change the retention count. These are
+this behavior; set `RW_BACKUP_KEEP_DAYS` to change the retention window and
+`RW_BACKUP_KEEP` to add an archive-count limit. Pruning runs after successful
+backups, so expired archives can remain until the next backup. These are
 startup backups, so a continuously running container does not create new
 archives on a timer.
 

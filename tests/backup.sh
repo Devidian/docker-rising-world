@@ -33,6 +33,16 @@ mapfile -t archives < <(borg list --short "${repository}")
 [[ "$(borg extract --stdout "${repository}::${archives[1]}" 'Worlds/New World/Player.db')" == world-v3 ]]
 [[ "$(borg extract --stdout "${repository}::${archives[1]}" 'Plugins/OZTools/settings.json')" == plugin-v1 ]]
 
+(
+    cd "${game_dir}"
+    borg create --timestamp "$(date -u -d '8 days ago' '+%Y-%m-%dT%H:%M:%S')" \
+        "${repository}::rw-expired-fixture" Worlds
+)
+bash "${repo_dir}/backup.sh" "${game_dir}"
+mapfile -t archives < <(borg list --short "${repository}")
+[[ "${#archives[@]}" -eq 3 ]]
+[[ ! " ${archives[*]} " =~ " rw-expired-fixture " ]]
+
 empty_dir="${test_dir}/empty"
 mkdir -p "${empty_dir}"
 bash "${repo_dir}/backup.sh" "${empty_dir}" 2
