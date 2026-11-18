@@ -17,7 +17,7 @@ backup_dir="${game_dir}/Backups/docker-rising-world"
 repository="${backup_dir}/repository"
 export BORG_PASSPHRASE="" BORG_CACHE_DIR="${backup_dir}/cache"
 export BORG_SECURITY_DIR="${backup_dir}/security"
-mapfile -t archives < <(borg list --short "${repository}")
+mapfile -t archives < <(borg list --short "${repository}" | LC_ALL=C sort)
 [[ "${#archives[@]}" -eq 1 ]]
 [[ "$(borg extract --stdout "${repository}::${archives[0]}" 'Worlds/New World/Player.db')" == world-v1 ]]
 [[ "$(borg extract --stdout "${repository}::${archives[0]}" 'Plugins/OZTools/settings.json')" == plugin-v1 ]]
@@ -27,7 +27,7 @@ bash "${repo_dir}/backup.sh" "${game_dir}" 2
 printf 'world-v3\n' > "${game_dir}/Worlds/New World/Player.db"
 bash "${repo_dir}/backup.sh" "${game_dir}" 2
 
-mapfile -t archives < <(borg list --short "${repository}")
+mapfile -t archives < <(borg list --short "${repository}" | LC_ALL=C sort)
 [[ "${#archives[@]}" -eq 2 ]]
 [[ "$(borg extract --stdout "${repository}::${archives[0]}" 'Worlds/New World/Player.db')" == world-v2 ]]
 [[ "$(borg extract --stdout "${repository}::${archives[1]}" 'Worlds/New World/Player.db')" == world-v3 ]]
@@ -39,7 +39,7 @@ mapfile -t archives < <(borg list --short "${repository}")
         "${repository}::rw-expired-fixture" Worlds
 )
 bash "${repo_dir}/backup.sh" "${game_dir}"
-mapfile -t archives < <(borg list --short "${repository}")
+mapfile -t archives < <(borg list --short "${repository}" | LC_ALL=C sort)
 [[ "${#archives[@]}" -eq 3 ]]
 [[ ! " ${archives[*]} " =~ " rw-expired-fixture " ]]
 
