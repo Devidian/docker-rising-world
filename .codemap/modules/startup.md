@@ -7,6 +7,8 @@ Configure and start the dedicated server, optionally install OZ Tools, and provi
 
 ## Source and tests
 
+- [OZ Tools installer fixture](../../tests/install-oz-tools.sh) covers archive validation, preservation of settings and failed-swap rollback.
+
 - [Entrypoint](../../entrypoint.sh), [Dockerfile](../../Dockerfile), and [healthcheck](../../healthcheck.sh) implement the lifecycle.
 - [Healthcheck tests](../../tests/healthcheck.sh) cover health behavior. See [backup](backup.md) for startup data handling.
 

@@ -109,7 +109,12 @@ install_oz_tools() {
         return 1
     fi
 
-    if ! mkdir -p "${stage_dir}/OZTools"; then
+    local release_dir="${stage_dir}/release"
+    local release_jar="${release_dir}/OZTools/OZTools.jar"
+    if ! mkdir -p "${release_dir}" "${stage_dir}/OZTools" ||
+        ! unzip -oq "${archive}" -d "${release_dir}" ||
+        [[ ! -f "${release_jar}" || -L "${release_jar}" ]] ||
+        ! unzip -tqq "${release_jar}"; then
         cleanup_oz_tools_update "${archive}" "${stage_dir}"
         return 1
     fi
@@ -120,8 +125,7 @@ install_oz_tools() {
         return 1
     fi
 
-    if ! unzip -oq "${archive}" -d "${stage_dir}" ||
-        [[ ! -f "${stage_dir}/OZTools/OZTools.jar" ]]; then
+    if ! cp -a "${release_dir}/OZTools/." "${stage_dir}/OZTools/"; then
         cleanup_oz_tools_update "${archive}" "${stage_dir}"
         return 1
     fi

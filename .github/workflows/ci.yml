@@ -19,18 +19,21 @@ jobs:
       - name: Install shellcheck
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends shellcheck borgbackup sqlite3
+          sudo apt-get install -y --no-install-recommends shellcheck borgbackup sqlite3 unzip
 
       - name: Validate shell scripts
         run: |
-          bash -n entrypoint.sh backup.sh compact-plugin-dbs.sh healthcheck.sh tests/backup.sh tests/compact-plugin-dbs.sh tests/healthcheck.sh
-          shellcheck entrypoint.sh backup.sh compact-plugin-dbs.sh healthcheck.sh tests/backup.sh tests/compact-plugin-dbs.sh tests/healthcheck.sh
+          bash -n entrypoint.sh backup.sh compact-plugin-dbs.sh healthcheck.sh tests/backup.sh tests/compact-plugin-dbs.sh tests/healthcheck.sh tests/install-oz-tools.sh
+          shellcheck entrypoint.sh backup.sh compact-plugin-dbs.sh healthcheck.sh tests/backup.sh tests/compact-plugin-dbs.sh tests/healthcheck.sh tests/install-oz-tools.sh
 
       - name: Test configurable healthcheck port
         run: bash tests/healthcheck.sh
 
       - name: Test startup backup and retention
         run: bash tests/backup.sh
+
+      - name: OZ Tools installer fixtures
+        run: bash tests/install-oz-tools.sh
 
       - name: Test plugin database compaction and rollback
         run: bash tests/compact-plugin-dbs.sh
